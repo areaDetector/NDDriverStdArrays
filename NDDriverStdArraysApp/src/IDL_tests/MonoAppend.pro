@@ -39,7 +39,7 @@ for i=1, 10 do begin
   for j=0, ySize-yStep, yStep do begin
     for k=0, xSize-xStep, xStep do begin
       t = caput(prefix + 'ArrayIn', data[k:k+xStep-1,j:j+yStep-1])
-      wait, .001
+      ;wait, .001
     endfor
   endfor
   t = caput(prefix + 'ArrayComplete', 1)  
