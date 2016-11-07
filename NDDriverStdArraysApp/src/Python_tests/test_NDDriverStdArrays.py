@@ -9,12 +9,12 @@ R = 'cam1:'
 I = 'image1:'
 
 data_types = {
-    'int8'  : 0,
-    'uint8'   : 1,
-    'int16' : 2,
-    'uint16'  : 3,
-    'int32' : 4,
-    'uint32'  : 5,
+    'int8'   : 0,
+    'uint8'  : 1,
+    'int16'  : 2,
+    'uint16' : 3,
+    'int32'  : 4,
+    'uint32' : 5,
     'float32': 6,
     'float64': 7
 }
@@ -29,6 +29,18 @@ np_data_types = {
     'float32': np.float32,
     'float64': np.float64
 }
+
+
+def dist(nx=256,ny=None):
+    ''' Implements the IDL dist() function in Python
+	'''
+    if ny is None:
+        ny = nx
+    x = np.linspace(start=-nx/2,stop=nx/2-1, num=nx)
+    y = np.linspace(start=-ny/2,stop=ny/2-1, num=ny)
+    xx = x + 1j * y[:,np.newaxis]
+    out = roll(roll(np.abs(xx),nx/2,1),ny/2,0)
+    return out
 
 class TestADSoft(unittest.TestCase):
     
@@ -68,16 +80,19 @@ class TestADSoft(unittest.TestCase):
         self.append_mode_pv.put('Disable')
         self.image_mode_pv.put('Single')
         result = True
+        scale = 100
+        scaleStep = 1.05
         for dt in data_types:
             print('Testing append mode disable {:s}'.format(dt))
             self.data_type_pv.put(data_types[dt])
-            row = np.arange(nx) / (nx-1.) * 100
-            image = np.tile(row, (ny,1))
-            image = image.astype(np_data_types[dt]).reshape(ny, nx)
+            row = np.arange(nx) / (nx-1.) * scale
+            scale *= scaleStep
+            image = np.tile(row, ny).reshape(ny, nx).transpose()
+            image = image.astype(np_data_types[dt])
             self.acquire_pv.put('Acquire')
-            self.array_in_pv.put(image.flatten(), wait=True)
-            time.sleep(.1)
-            rimage = self.image_plugin_array_pv.get(count=nx*ny).reshape(ny,nx)
+            self.array_in_pv.put(image.flatten(order='F'), wait=True)
+            time.sleep(.5)
+            rimage = self.image_plugin_array_pv.get(count=nx*ny).reshape(nx,ny,order='F')
             result = result and self.assertTrue(np.array_equal(image, rimage))
 
         return result
@@ -86,26 +101,29 @@ class TestADSoft(unittest.TestCase):
         # Test AppendMode=Enable 
         self.append_mode_pv.put('Enable')
         self.image_mode_pv.put('Single')
-        ystart = 0
-        ystep = 1
         result = True
+        ystep = 1
+        scale = 50
+        scaleStep = 1.1
         for dt in data_types:
             print('Testing append mode enable {:s}'.format(dt))
+            ystart = 0
             self.new_array_pv.put(1)
             self.data_type_pv.put(data_types[dt])
             self.acquire_pv.put('Acquire')
-            row = np.arange(nx) / (nx-1.) * 50
-            image = np.tile(row, (ny,1))
-            image = image.astype(np_data_types[dt]).reshape(ny, nx)
+            row = np.arange(nx) / (nx-1.) * scale
+            scale *= scaleStep
+            image = np.tile(row, ny).reshape(ny, nx).transpose()
+            image = image.astype(np_data_types[dt])
             while ystart < ny:
-              chunk = image[ystart:ystart+ystep,:].astype(np_data_types[dt]).flatten()
+              chunk = image[:, ystart:ystart+ystep].flatten(order='F')
               self.array_in_pv.put(chunk, wait=True)
               ystart = ystart + ystep
-              time.sleep(0.001)
+              #time.sleep(0.001)
 
             time.sleep(0.5)
             self.array_complete_pv.put(1)
-            rimage = self.image_plugin_array_pv.get(count=nx*ny).reshape(ny,nx)
+            rimage = self.image_plugin_array_pv.get(count=nx*ny).reshape(nx,ny,order='F')
             result = result and self.assertTrue(np.array_equal(image, rimage))
 
         return result
