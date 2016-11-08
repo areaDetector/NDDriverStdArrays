@@ -33,6 +33,15 @@ record(mbbi, "$(P)$(R)CallbackMode_RBV")
     field(SCAN, "I/O Intr")
 }
 
+record(bo, "$(P)$(R)DoCallbacksScan")
+{
+    field(ZNAM, "Done")
+    field(ONAM, "Set")
+    field(FLNK, "$(P)$(R)DoCallbacks")
+    field(SDIS, "$(P)$(R)Acquire")
+    field(DISV, "0")
+}
+
 record(bo, "$(P)$(R)DoCallbacks")
 {
     field(DTYP, "asynInt32")
