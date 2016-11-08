@@ -64,7 +64,7 @@ dbLoadRecords("NDStdArrays.template", "P=$(PREFIX),R=image1:,PORT=Image1,ADDR=0,
 
 # Load all other plugins using commonPlugins.cmd
 < $(ADCORE)/iocBoot/commonPlugins.cmd
-set_requestfile_path("$(ADEXAMPLE)/exampleApp/Db")
+set_requestfile_path("$(NDDRIVERSTDARRAYS)/NDDriverStdArraysApp/Db")
 
 iocInit()
 
