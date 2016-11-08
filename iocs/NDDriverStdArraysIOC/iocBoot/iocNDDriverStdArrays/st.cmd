@@ -47,7 +47,7 @@ asynSetMinTimerPeriod(0.001)
 NDDriverStdArraysConfig("$(PORT)", $(QSIZE), 0, 0)
 #asynSetTraceMask $(PORT) 0 0xFF
 #asynSetTraceInfoMask $(PORT) 0 0x7
-dbLoadRecords("NDDriverStdArrays.template","P=$(PREFIX),R=cam1:,PORT=$(PORT),ADDR=0,TIMEOUT=1,NELEMENTS=$(NELEMENTS),TYPE=$(TYPE),FTVL=$(FTVL)")
+dbLoadRecords("$(NDDRIVERSTDARRAYS)/db/NDDriverStdArrays.template","P=$(PREFIX),R=cam1:,PORT=$(PORT),ADDR=0,TIMEOUT=1,NELEMENTS=$(NELEMENTS),TYPE=$(TYPE),FTVL=$(FTVL)")
 
 # Create a standard arrays plugin, set it to get data from the NDDriverStdArrays driver.
 NDStdArraysConfigure("Image1", 3, 0, "$(PORT)", 0)
