@@ -10,7 +10,7 @@
     <h1>
       NDDriverStdArrays areaDetector driver</h1>
     <h2>
-      November 5, 2016</h2>
+      November 8, 2016</h2>
     <h2>
       Mark Rivers</h2>
     <h2>
@@ -41,6 +41,10 @@
     them to NDArrays in the IOC. pvaDriver only works with EPICS V4 PVAccess clients,
     while NDDriverStdArrays works with EPICS V3 Channel Access clients.
   </p>
+  <p>
+    NDDriverStdArrays is based on an earlier driver called ADSoft written by David Vine
+    from LBL. This driver generalizes ADSoft to support any number of dimensions and
+    any input waveform data type.</p>
   <p>
     One use-case for this driver may be to receive data from the EPICS sscan record.
     By putting such data into an areaDetector IOC it could then be saved with the standard
