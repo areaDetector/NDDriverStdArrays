@@ -5,13 +5,10 @@
  *
  * It allows any Channel Access client to inject NDArrays into an areaDetector IOC.
  * 
- * Author: David J. Vine
- * Berkeley National Lab
- *
  * Mark Rivers
  * University of Chicago
  * 
- * Created: September 28, 2016
+ * Created: November 8, 2016
  *
  */
 
