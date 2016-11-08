@@ -148,13 +148,14 @@ class TestADSoft(unittest.TestCase):
         result = True
         nx, ny = 500,800
         scale = 100
-        dt = 'int16'
+        dt = 'float32'
         self.ndimensions_pv.put(2)
         self.dimensions_pv.put([nx, ny, 0, 0, 0, 0, 0, 0, 0, 0])
         self.color_mode_pv.put('Mono')
         self.data_type_pv.put(data_types[dt])
         d = dist(nx, ny)
         for i in range(1, 50):
+            print('Testing mono mode ', i)
             image = scale*np.sin(shift(d/i, nx/2, ny/2))
             image = image.astype(np_data_types[dt]).transpose()
             self.acquire_pv.put('Acquire')
@@ -178,6 +179,7 @@ class TestADSoft(unittest.TestCase):
         d = dist(nx, ny)
         image = np.empty([3, nx, ny])
         for i in range(1, 20):
+            print('Testing RGB1 mode ', i)
             red   = scale*np.sin(shift(d/i,     nx/2, ny/2))
             green = scale*np.sin(shift(d/(i*2), nx/2, ny/2))
             blue  = scale*np.sin(shift(d/(i*3), nx/2, ny/2))
@@ -189,6 +191,33 @@ class TestADSoft(unittest.TestCase):
             self.array_in_pv.put(image.flatten(order='F'), wait=True)
             rimage = self.image_plugin_array_pv.get(count=3*nx*ny).reshape(3,nx,ny,order='F')
             result = result and self.assertTrue(np.array_equal(image, rimage))
+        return result
+
+    def test_scan_sim1(self):
+        # Test scan record simulation 
+        self.append_mode_pv.put('Enable')
+        self.image_mode_pv.put('Single')
+        ndet, nx, ny = 4, 100, 200
+        result = True
+        self.ndimensions_pv.put(3)
+        self.dimensions_pv.put([ndet, nx, ny, 0, 0, 0, 0, 0, 0, 0])
+        self.color_mode_pv.put('Mono')
+        print('Testing scan simulation mode')
+        self.acquire_pv.put('Acquire')
+        self.new_array_pv.put(1)
+        dt = 'float64'
+        self.data_type_pv.put(data_types[dt])
+        counts = np.empty(ndet)
+        scale = 100.
+        period = 10.
+        for y in range(ny):
+            for x in range(nx):
+                counts[0] = x + y;
+                counts[1] = (x + y) * np.random.random();
+                counts[2] = x*np.random.random();
+                counts[3] = scale * np.sin(((x-nx/2.)**2 + (y-ny/2.)**2) / period)
+                self.array_in_pv.put(counts, wait=True)
+        self.array_complete_pv.put(1)
         return result
 
 if __name__ == '__main__':
