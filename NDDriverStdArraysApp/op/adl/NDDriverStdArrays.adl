@@ -1,6 +1,6 @@
 
 file {
-	name="/home/epics/devel/areaDetector-2-5/NDDriverStdArrays/NDDriverStdArraysApp/op/adl/NDDriverStdArrays.adl"
+	name="/home/epics/devel/areaDetector/NDDriverStdArrays/NDDriverStdArraysApp/op/adl/NDDriverStdArrays.adl"
 	version=030107
 }
 display {
@@ -722,23 +722,6 @@ menu {
 	limits {
 	}
 }
-"text update" {
-	object {
-		x=605
-		y=510
-		width=90
-		height=18
-	}
-	monitor {
-		chan="$(P)$(R)CallbackMode_RBV"
-		clr=54
-		bclr=4
-	}
-	align="horiz. centered"
-	format="string"
-	limits {
-	}
-}
 composite {
 	object {
 		x=5
@@ -1233,7 +1216,7 @@ composite {
 }
 composite {
 	object {
-		x=510
+		x=450
 		y=535
 		width=120
 		height=70
@@ -1242,7 +1225,7 @@ composite {
 	children {
 		"message button" {
 			object {
-				x=510
+				x=450
 				y=535
 				width=120
 				height=20
@@ -1257,7 +1240,7 @@ composite {
 		}
 		"message button" {
 			object {
-				x=510
+				x=450
 				y=560
 				width=120
 				height=20
@@ -1272,7 +1255,7 @@ composite {
 		}
 		"message button" {
 			object {
-				x=510
+				x=450
 				y=585
 				width=120
 				height=20
@@ -1287,53 +1270,16 @@ composite {
 		}
 	}
 }
-composite {
+menu {
 	object {
-		x=365
+		x=575
 		y=535
-		width=140
-		height=70
+		width=90
+		height=20
 	}
-	"composite name"=""
-	children {
-		text {
-			object {
-				x=385
-				y=535
-				width=120
-				height=20
-			}
-			"basic attribute" {
-				clr=14
-			}
-			textix="Do callbacks"
-			align="horiz. right"
-		}
-		text {
-			object {
-				x=415
-				y=560
-				width=90
-				height=20
-			}
-			"basic attribute" {
-				clr=14
-			}
-			textix="New array"
-			align="horiz. right"
-		}
-		text {
-			object {
-				x=365
-				y=585
-				width=140
-				height=20
-			}
-			"basic attribute" {
-				clr=14
-			}
-			textix="Array complete"
-			align="horiz. right"
-		}
+	control {
+		chan="$(P)$(R)DoCallbacksScan.SCAN"
+		clr=14
+		bclr=51
 	}
 }
