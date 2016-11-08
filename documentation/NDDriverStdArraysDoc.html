@@ -24,6 +24,7 @@
     <li><a href="#DriverParameters">NDDriverStdArrays specific driver parameters</a></li>
     <li><a href="#Configuration">Configuration</a></li>
     <li><a href="#MEDM_screens">MEDM screens</a></li>
+    <li><a href="#UnitTests">Unit tests</a></li>
   </ul>
   <h2 id="Introduction" style="text-align: left">
     Introduction</h2>
@@ -414,5 +415,41 @@
     <h3 style="text-align: center">
       NDDriverStdArrays.adl</h3>
     <img alt="NDDriverStdArrays.png" src="NDDriverStdArrays.png" /></div>
+  <h2 id="UnitTests" style="text-align: left">
+    Unit tests</h2>
+  <p>
+    The src/Python_tests and src/IDL_tests directories contain a number of tests of
+    the driver. These test AppendMode=Disable and Enable, arrays of various dimensions,
+    etc. The IDL tests are run by opening IDL and typing for example:</p>
+  <pre>IDL> .run MonoOverwrite
+    </pre>
+  <p>
+    The Python tests can all be run by typing:</p>
+  <pre>python test_NDDriverStdArrays.py
+    </pre>
+  <p>
+    Individual tests can be run by typing for example:</p>
+  <pre>python test_NDDriverStdArrays.py TestNDDriverStdArrays.test_scan_sim1
+  </pre>
+  <p>
+    The Python test_scan_sim1 test test produces NDArrays of dimensions [4, 100, 200].
+    It appends 1 "pixel", consisting of 4 detector values each time the waveform record
+    is written.</p>
+  <p>
+    The following shows the NDPluginROI medm screen configured to select the 4'th detector
+    in the NDArray. Note that the plugin has the CollapseDims PV enabled. This results
+    in output arrays of dimensions [100, 200], rather than [1, 100, 200] which would
+    be the case if CollapseDims was disabled.</p>
+  <div style="text-align: center">
+    <h3 style="text-align: center">
+      NDROI.adl</h3>
+    <img alt="NDSA_test_scan_sim1_ROI4.png" src="NDSA_test_scan_sim1_ROI4.png" /></div>
+  <p>
+    The following shows the ImageJ screen displaying the output of the 4'th detector
+    via ROI4. The NDPluginStdArrays was set to have ROI4 as its array input.</p>
+  <div style="text-align: center">
+    <h3 style="text-align: center">
+      ImageJ display</h3>
+    <img alt="NDSA_test_scan_sim1_ROI4_ImageJ.png" src="NDSA_test_scan_sim1_ROI4_ImageJ.png" /></div>
 </body>
 </html>
