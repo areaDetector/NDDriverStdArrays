@@ -3,7 +3,6 @@ import epics
 import numpy as np
 import time
 
-nx, ny = 256, 768
 P = '13NDSA1:'
 R = 'cam1:'
 I = 'image1:'
@@ -39,14 +38,27 @@ def dist(nx=256,ny=None):
     x = np.linspace(start=-nx/2,stop=nx/2-1, num=nx)
     y = np.linspace(start=-ny/2,stop=ny/2-1, num=ny)
     xx = x + 1j * y[:,np.newaxis]
-    out = roll(roll(np.abs(xx),nx/2,1),ny/2,0)
+    out = np.roll(np.roll(np.abs(xx),nx/2,1),ny/2,0)
     return out
+
+def shift(array=None, sx=0, sy=0, sz=0):
+    ''' Implements the IDL shift() function in Python
+    '''
+    if array is None:
+        return array
+    ndim = len(array.shape)
+    if ndim > 3:
+        print 'Maximum number of dimensions for array is 3'
+        return array
+    s = [sx, sy, sz]
+    for i in range(ndim):
+        array = np.roll(array,s[i],ndim-i-1)
+    return array
 
 class TestADSoft(unittest.TestCase):
     
     def setUp(self):
         print('Begin setup')
-        self.image = np.random.uniform(0, 255, size=nx*ny).astype(np.uint8).reshape(nx, ny)
         self.acquire_pv = epics.PV(P+R+'Acquire.VAL')
         self.image_plugin_array_pv = epics.PV(P+I+'ArrayData.VAL')
         self.array_in_pv = epics.PV(P+R+'ArrayIn')
@@ -65,10 +77,6 @@ class TestADSoft(unittest.TestCase):
         self.array_callbacks_pv = epics.PV(P+R+'ArrayCallbacks.VAL')
         print('PVs connected')
 
-        self.ndimensions_pv.put(2)
-        self.dimensions_pv.put([nx, ny, 0, 0, 0, 0, 0, 0, 0, 0])
-        self.color_mode_pv.put('Mono')
-        self.num_images_pv.put(5)
         self.array_callbacks_pv.put('Enable')
         print('Completed setup')
 
@@ -79,9 +87,13 @@ class TestADSoft(unittest.TestCase):
         # Test AppendMode=Disable
         self.append_mode_pv.put('Disable')
         self.image_mode_pv.put('Single')
+        nx, ny = 256, 768
         result = True
         scale = 100
         scaleStep = 1.05
+        self.ndimensions_pv.put(2)
+        self.dimensions_pv.put([nx, ny, 0, 0, 0, 0, 0, 0, 0, 0])
+        self.color_mode_pv.put('Mono')
         for dt in data_types:
             print('Testing append mode disable {:s}'.format(dt))
             self.data_type_pv.put(data_types[dt])
@@ -94,17 +106,20 @@ class TestADSoft(unittest.TestCase):
             time.sleep(.5)
             rimage = self.image_plugin_array_pv.get(count=nx*ny).reshape(nx,ny,order='F')
             result = result and self.assertTrue(np.array_equal(image, rimage))
-
         return result
 
     def test_append_enable(self):
         # Test AppendMode=Enable 
         self.append_mode_pv.put('Enable')
         self.image_mode_pv.put('Single')
+        nx, ny = 256, 768
         result = True
         ystep = 1
         scale = 50
         scaleStep = 1.1
+        self.ndimensions_pv.put(2)
+        self.dimensions_pv.put([nx, ny, 0, 0, 0, 0, 0, 0, 0, 0])
+        self.color_mode_pv.put('Mono')
         for dt in data_types:
             print('Testing append mode enable {:s}'.format(dt))
             ystart = 0
@@ -120,12 +135,60 @@ class TestADSoft(unittest.TestCase):
               self.array_in_pv.put(chunk, wait=True)
               ystart = ystart + ystep
               #time.sleep(0.001)
-
             time.sleep(0.5)
             self.array_complete_pv.put(1)
             rimage = self.image_plugin_array_pv.get(count=nx*ny).reshape(nx,ny,order='F')
             result = result and self.assertTrue(np.array_equal(image, rimage))
+        return result
 
+    def test_mono(self):
+        # Test Mono sine waves
+        self.append_mode_pv.put('Disable')
+        self.image_mode_pv.put('Continuous')
+        result = True
+        nx, ny = 500,800
+        scale = 100
+        dt = 'int16'
+        self.ndimensions_pv.put(2)
+        self.dimensions_pv.put([nx, ny, 0, 0, 0, 0, 0, 0, 0, 0])
+        self.color_mode_pv.put('Mono')
+        self.data_type_pv.put(data_types[dt])
+        d = dist(nx, ny)
+        for i in range(1, 50):
+            image = scale*np.sin(shift(d/i, nx/2, ny/2))
+            image = image.astype(np_data_types[dt]).transpose()
+            self.acquire_pv.put('Acquire')
+            self.array_in_pv.put(image.flatten(order='F'), wait=True)
+            rimage = self.image_plugin_array_pv.get(count=nx*ny).reshape(nx,ny,order='F')
+            result = result and self.assertTrue(np.array_equal(image, rimage))
+        return result
+
+    def test_rgb1(self):
+        # Test rgb1 sine waves
+        self.append_mode_pv.put('Disable')
+        self.image_mode_pv.put('Continuous')
+        result = True
+        nx, ny = 600,800
+        scale = 100
+        dt = 'int8'
+        self.ndimensions_pv.put(3)
+        self.dimensions_pv.put([3, nx, ny, 0, 0, 0, 0, 0, 0, 0])
+        self.color_mode_pv.put('RGB1')
+        self.data_type_pv.put(data_types[dt])
+        d = dist(nx, ny)
+        image = np.empty([3, nx, ny])
+        for i in range(1, 20):
+            red   = scale*np.sin(shift(d/i,     nx/2, ny/2))
+            green = scale*np.sin(shift(d/(i*2), nx/2, ny/2))
+            blue  = scale*np.sin(shift(d/(i*3), nx/2, ny/2))
+            image[0,:,:] = red.transpose()
+            image[1,:,:] = green.transpose()
+            image[2,:,:] = blue.transpose()
+            image = image.astype(np_data_types[dt])
+            self.acquire_pv.put('Acquire')
+            self.array_in_pv.put(image.flatten(order='F'), wait=True)
+            rimage = self.image_plugin_array_pv.get(count=3*nx*ny).reshape(3,nx,ny,order='F')
+            result = result and self.assertTrue(np.array_equal(image, rimage))
         return result
 
 if __name__ == '__main__':
