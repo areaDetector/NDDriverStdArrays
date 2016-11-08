@@ -55,7 +55,7 @@ def shift(array=None, sx=0, sy=0, sz=0):
         array = np.roll(array,s[i],ndim-i-1)
     return array
 
-class TestADSoft(unittest.TestCase):
+class TestNDDriverStdArrays(unittest.TestCase):
     
     def setUp(self):
         print('Begin setup')
