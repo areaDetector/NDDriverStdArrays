@@ -1,8 +1,8 @@
 #===================================================
 # Template file: NDDriverStdArrays.template
 # Database for the records specific to the NDDriverStdArrays driver
-# David Vine
-# September 28, 2016
+# Mark Rivers
+# November 8, 2016
 
 include ADBase.template
 
