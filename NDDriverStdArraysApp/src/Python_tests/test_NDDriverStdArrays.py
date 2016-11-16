@@ -151,13 +151,13 @@ class TestNDDriverStdArrays(unittest.TestCase):
         # Test AppendMode=Enable 
         nx, ny = 256, 768
         result = True
-        ystep = 1
+        yStep = 1
         scale = 50
         scaleStep = 1.1
         self.setupPVs(dimensions=[nx, ny], appendMode='Enable')
         for dt in dataTypes:
             print 'testDataTypesAppend type={:s}'.format(dt) 
-            ystart = 0
+            yStart = 0
             self.newArrayPV.put(1)
             self.dataTypePV.put(dataTypes[dt])
             self.acquirePV.put('Acquire')
@@ -165,10 +165,10 @@ class TestNDDriverStdArrays(unittest.TestCase):
             scale *= scaleStep
             image = np.tile(row, ny).reshape(ny, nx).transpose()
             image = image.astype(npDataTypes[dt])
-            while ystart < ny:
-              chunk = image[:, ystart:ystart+ystep].flatten(order='F')
+            while yStart < ny:
+              chunk = image[:, yStart:yStart+yStep].flatten(order='F')
               self.arrayInPV.put(chunk, wait=True)
-              ystart = ystart + ystep
+              yStart += yStep
               #time.sleep(0.001)
             time.sleep(0.5)
             self.arrayCompletePV.put(1)
@@ -262,7 +262,7 @@ class TestNDDriverStdArrays(unittest.TestCase):
     def testScanPointReverse(self):
         return self.testScanPoint(reverse=True)
 
-    def testScanLine(self, detIndex=0, reverse=False):
+    def testScanLine(self, detIndex=0):
         # Test scan record simulation in line mode
         ndet, nx, ny = 4, 400, 600
         maxROIs = 4
@@ -272,25 +272,21 @@ class TestNDDriverStdArrays(unittest.TestCase):
             dimensions=[ndet, nx, ny]
             roiSize=[1, nx, ny]
             stride = ndet
-            ystep = ndet * nx
+            yStep = ndet * nx
             detStep = 1
         elif (detIndex == 1): 
             dimensions=[nx, ndet, ny]
             roiSize=[nx, 1, ny]
             stride = 1
-            ystep = ndet * nx
+            yStep = ndet * nx
             detStep = nx
         elif (detIndex == 2): 
             dimensions=[nx, ny, ndet]
             roiSize=[nx, ny, 1]
             stride = 1
-            ystep = nx
+            yStep = nx
             detStep = nx * ny
-        if (reverse):
-          yscan = [ny-1, -1, -1]
-        else:
-          yscan = [0, ny, 1]
-        print 'testScanLine detector index={0} reverse='.format(detIndex, reverse) 
+        print 'testScanLine detector index={0}'.format(detIndex) 
         self.setupPVs(dimensions=dimensions, dataType=dataTypes[dt], appendMode='Enable', stride=stride,
                       roiSize=roiSize, imagePort='ROI1', fillValue=1)
         self.acquirePV.put('Acquire')
@@ -298,8 +294,8 @@ class TestNDDriverStdArrays(unittest.TestCase):
         counts = np.empty([ndet, nx])
         scale = 100.
         period = 10.
-        for y in np.arange(yscan[0], yscan[1], yscan[2]):
-            nextElement = y * ystep
+        for y in range(ny):
+            nextElement = y * yStep
             x = np.arange(nx)
             counts[0, :] = x + y;
             counts[1, :] = (x + y) * np.random.random(nx);
@@ -316,9 +312,6 @@ class TestNDDriverStdArrays(unittest.TestCase):
             self.doCallbacksPV.put(1)
             time.sleep(1)
         return result
-
-    def testScanLineReverse(self):
-        return self.testScanLine(reverse=True)
 
     def testScanLineIndex1(self):
         return self.testScanLine(detIndex=1)
