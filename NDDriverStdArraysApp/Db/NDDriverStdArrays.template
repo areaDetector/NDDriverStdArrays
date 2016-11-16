@@ -131,6 +131,14 @@ record(ao, "$(P)$(R)FillValue")
     field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))NDSA_FILL_VALUE")
 }
 
+record(ai, "$(P)$(R)FillValue_RBV")
+{
+    field(DTYP, "asynFloat64")
+    field(VAL,  "0.0")
+    field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))NDSA_FILL_VALUE")
+    field(SCAN, "I/O Intr")
+}
+
 record(waveform, "$(P)$(R)ArrayIn")
 {
     field(DTYP, "asyn$(TYPE)ArrayOut")
