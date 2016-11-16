@@ -10,7 +10,7 @@
     <h1>
       NDDriverStdArrays areaDetector driver</h1>
     <h2>
-      November 8, 2016</h2>
+      November 15, 2016</h2>
     <h2>
       Mark Rivers</h2>
     <h2>
@@ -44,7 +44,7 @@
   </p>
   <p>
     NDDriverStdArrays is based on an earlier driver called ADSoft written by David Vine
-    from LBL. This driver generalizes ADSoft to support any number of dimensions and
+    from LBNL. This driver generalizes ADSoft to support any number of dimensions and
     any input waveform data type.</p>
   <p>
     One use-case for this driver may be to receive data from the EPICS sscan record.
@@ -76,11 +76,6 @@
     or asynFloat64ArrayWfOut. The driver does any required type conversion between the
     waveform record data and the NDArray data.</p>
   <p>
-    Data is copied from the waveform record to the NDArray without changing the order
-    of the array elements. This means that the waveform record data must be arranged
-    in the logical order of the NDArray, i.e. first dimension changing fastest, then
-    the second dimension, etc.</p>
-  <p>
     The driver has 2 modes of operation, AppendMode=Disable and AppendMode=Enable. When
     AppendMode is Disable then each write to the waveform record will generate a complete
     NDArray. The first element of the waveform record will be placed in the first element
@@ -100,8 +95,14 @@
       each time the waveform record is written. Thus if the data are being written in
       the logical order of the NDArray then this record does not need to be written. This
       record is useful when the should not be written in the natural order of the NDArray
-      data. Note that each waveform record must still contain adjacent array elements
-      in the NDArray.</li>
+      data.</li>
+    <li>Stride This record can be used to define the increment in the NDArray index for
+      each successive element in the waveform record. Data is copied from the waveform
+      record to the NDArray as follows:
+      <pre>
+        NDArray[NextElement + i*Stride] = waveform[i]
+    </pre>
+      The default value of Stride is 1.</li>
     <li>ArrayComplete This record must be processed to tell the driver that the NDArray
       is complete and that no more waveform records will be written to this NDArray.</li>
   </ul>
@@ -290,6 +291,45 @@
       </tr>
       <tr>
         <td>
+          NDSA_Stride </td>
+        <td>
+          asynInt32 </td>
+        <td>
+          r/w </td>
+        <td>
+          The stride to use for the NDArray index when copying data from the waveform record
+          to the NDArray. See the description above. </td>
+        <td>
+          NDSA_STRIDE </td>
+        <td>
+          $(P)$(R)Stride
+          <br />
+          $(P)$(R)Stride_RBV</td>
+        <td>
+          longout
+          <br />
+          longin</td>
+      </tr>
+      <tr>
+        <td>
+          NDSA_FillValue </td>
+        <td>
+          asynFloat64 </td>
+        <td>
+          r/w </td>
+        <td>
+          The fill value to use for the NDArray. The NDArray is set to FillValue when AppendMode=Enable
+          and NewArray is processed, or when AppendMode=Disable and the number of elements
+          in the waveform record is fewer than the number of elements in the NDArray.</td>
+        <td>
+          NDSA_FILL_VALUE </td>
+        <td>
+          $(P)$(R)FillValue</td>
+        <td>
+          ao</td>
+      </tr>
+      <tr>
+        <td>
           NDSA_NewArray </td>
         <td>
           asynInt32 </td>
@@ -436,8 +476,7 @@
     Unit tests</h2>
   <p>
     The src/Python_tests and src/IDL_tests directories contain a number of tests of
-    the driver. These test AppendMode=Disable and Enable, arrays of various dimensions,
-    etc. The IDL tests are run by opening IDL and typing for example:</p>
+    the driver. The IDL tests are run by opening IDL and typing for example:</p>
   <pre>IDL> .run MonoOverwrite
     </pre>
   <p>
@@ -446,12 +485,63 @@
     </pre>
   <p>
     Individual tests can be run by typing for example:</p>
-  <pre>python test_NDDriverStdArrays.py TestNDDriverStdArrays.test_scan_sim1
+  <pre>python test_NDDriverStdArrays.py TestNDDriverStdArrays.testDataTypes
   </pre>
   <p>
-    The Python test_scan_sim1 test test produces NDArrays of dimensions [4, 100, 200].
-    It appends 1 "pixel", consisting of 4 detector values each time the waveform record
-    is written.</p>
+    When running the tests it is useful to be displaying the images, for example in
+    ImageJ. It is helpful to press the ImageJ "Auto" contrast button as the tests are
+    run, since they have different data ranges.</p>
+  <p>
+    test_NDDriverStdArrays.py contains the following tests:</p>
+  <ul>
+    <li><b>testDataTypes</b> This test creates NDArrays of size 256x768 for each allowed
+      NDArray data type and corresponding Python data type. It writes the complete array
+      with a single channel access write to the waveform record, i.e. with AppendMode=Disable.
+      After writing each array it reads it back to verify that the data read matches the
+      data written. </li>
+    <li><b>testDataTypesAppend</b> This test is the same as testDataTypes except that
+      the data are written with AppendMode=Enable. Each channel access write to the waveform
+      record writes "ystep" rows of the image. "ystep" is set to 1 in the code, but can
+      be edited to test writing multiple rows at once. After writing each complete array
+      it reads it back to verify that the data read matches the data written. </li>
+    <li><b>testContinuousMono</b> This test writes 50 NDArrays of size 500x800 with ImageMode=Continuous,
+      ColorMode=Mono, and AppendMode=Disable. The images are a 2-D damped sine wave, where
+      the frequency increases with each successive image. After writing each complete
+      array it reads it back to verify that the data read matches the data written.
+    </li>
+    <li><b>testContinuousRGB1</b> This test writes 20 NDArrays of size 3x600x800 with
+      ImageMode=Continuous ColorMode=RGB1, and AppendMode=Disable. The images are a 2-D
+      damped sine wave, where the frequency increases with each successive image and where
+      the red, green, and blue images have different frequencies. After writing each complete
+      array it reads it back to verify that the data read matches the data written.
+    </li>
+    <li><b>testScanPoint</b> This test simulates collecting 2-D scan data for 4 detectors
+      with size 100x200. The data are collected with AppendMode=Enable. The data are appended
+      to the NDArray one "pixel" at a time, i.e. the waveform record is has 4 elements,
+      one for each detector. At the end of the scan the test configures the ROI1: plugin
+      to select each of the 4 detectors in turn and processes the DoCallbacks record.
+      This can display each of the detectors in succession in the ImageJ plugin, for example.
+    </li>
+    <li><b>testScanPointReverse</b> This is the same as testScanPoint except that the
+      data are collected in reverse order, i.e. from element [99,199] backwards to element
+      [0,0]. It thus tests the use of NextElement.</li>
+    <li><b>testScanLine</b> This test simulates collecting 2-D scan data for 4 detectors
+      with size 400x600. The data are collected with AppendMode=Enable. The data are appended
+      to the NDArray one "detector line" at a time, i.e. the waveform record is has 400
+      elements, containing the data for one detector for one row of the scan. The NDArray
+      can be one of the following shapes:
+      <ul>
+        <li>[4,400,600] This is "detector interleaved&quot;, and called detIndex=0.&nbsp;
+          This is the default.</li>
+        <li>[400,4,600] This is "row interleaved", and called detIndex=1.</li>
+        <li>[400,600,4] This is "plane interleaved", and called detIndex=2.</li>
+      </ul>
+      At the end of the scan the test configures the ROI1: plugin to select each of the
+      4 detectors in turn and processes the DoCallbacks record. This can display each
+      of the detectors in succession in the ImageJ plugin, for example.
+      <li><b>testScanLineIndex1</b> This is the same as testScanLine, but with detIndex=1.
+        <li><b>testScanLineIndex2</b>This is the same as testScanLine, but with detIndex=2.
+  </ul>
   <p>
     The following shows the NDPluginROI medm screen configured to select the 4'th detector
     in the NDArray. Note that the plugin has the CollapseDims PV enabled. This results
@@ -460,13 +550,13 @@
   <div style="text-align: center">
     <h3 style="text-align: center">
       NDROI.adl</h3>
-    <img alt="NDSA_test_scan_sim1_ROI4.png" src="NDSA_test_scan_sim1_ROI4.png" /></div>
+    <img alt="NDSA_testScanPoint_ROI4.png" src="NDSA_testScanPoint_ROI4.png" /></div>
   <p>
     The following shows the ImageJ screen displaying the output of the 4'th detector
     via ROI4. The NDPluginStdArrays was set to have ROI4 as its array input.</p>
   <div style="text-align: center">
     <h3 style="text-align: center">
       ImageJ display</h3>
-    <img alt="NDSA_test_scan_sim1_ROI4_ImageJ.png" src="NDSA_test_scan_sim1_ROI4_ImageJ.png" /></div>
+    <img alt="NDSA_testScanPoint_ROI4_ImageJ.png" src="NDSA_testScanPoint_ROI4_ImageJ.png" /></div>
 </body>
 </html>
