@@ -108,6 +108,29 @@ record(longin, "$(P)$(R)NextElement_RBV")
     field(SCAN, "I/O Intr")
 }
 
+record(longout, "$(P)$(R)Stride")
+{
+    field(PINI, "YES")
+    field(DTYP, "asynInt32")
+    field(VAL,  "1")
+    field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))NDSA_STRIDE")
+}
+
+record(longin, "$(P)$(R)Stride_RBV")
+{
+    field(DTYP, "asynInt32")
+    field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))NDSA_STRIDE")
+    field(SCAN, "I/O Intr")
+}
+
+record(ao, "$(P)$(R)FillValue")
+{
+    field(PINI, "YES")
+    field(DTYP, "asynFloat64")
+    field(VAL,  "0.0")
+    field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))NDSA_FILL_VALUE")
+}
+
 record(waveform, "$(P)$(R)ArrayIn")
 {
     field(DTYP, "asyn$(TYPE)ArrayOut")
