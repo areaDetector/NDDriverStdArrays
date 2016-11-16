@@ -122,7 +122,7 @@ class TestNDDriverStdArrays(unittest.TestCase):
         self.nextElementPV.put(nextElement)
         self.fillValuePV.put(fillValue)
         self.stridePV.put(stride)
-        for i in range(3):
+        for i in range(len(self.ROIStartPVs)):
           self.ROIStartPVs[i].put(roiStart[i])
           self.ROISizePVs[i].put(roiSize[i])
         self.imagePortPV.put(imagePort)
