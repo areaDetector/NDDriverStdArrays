@@ -60,6 +60,8 @@ NDDriverStdArrays::NDDriverStdArrays(const char *portName, int maxBuffers, size_
     createParam(NDSA_AppendModeString,               asynParamInt32,        &NDSA_AppendMode_);
     createParam(NDSA_NumElementsString,              asynParamInt32,        &NDSA_NumElements_);
     createParam(NDSA_NextElementString,              asynParamInt32,        &NDSA_NextElement_);
+    createParam(NDSA_StrideString,                   asynParamInt32,        &NDSA_Stride_);
+    createParam(NDSA_FillValueString,              asynParamFloat64,        &NDSA_FillValue_);
     createParam(NDSA_NewArrayString,                 asynParamInt32,        &NDSA_NewArray_);
     createParam(NDSA_ArrayCompleteString,            asynParamInt32,        &NDSA_ArrayComplete_);
     createParam(NDSA_ArrayDataString,                asynParamInt32,        &NDSA_ArrayData_);
@@ -71,6 +73,8 @@ NDDriverStdArrays::NDDriverStdArrays(const char *portName, int maxBuffers, size_
     status |= setIntegerParam(NDSA_CallbackMode_, (int)NDSA_OnUpdate);
     status |= setIntegerParam(NDSA_NumElements_, 0);
     status |= setIntegerParam(NDSA_NextElement_, 0);
+    status |= setIntegerParam(NDSA_Stride_, 1);
+    status |= setDoubleParam (NDSA_FillValue_, 0.);
     status |= setIntegerParam(NDSA_NewArray_, 1);
     status |= setIntegerParam(NDSA_ArrayComplete_, 0);
 
@@ -80,12 +84,30 @@ NDDriverStdArrays::NDDriverStdArrays(const char *portName, int maxBuffers, size_
     }
 }
 
-template <typename epicsType, typename NDArrayType> void NDDriverStdArrays::copyBuffer(size_t nextElement, void *pValue, size_t nElements)
+template <typename NDArrayType> void NDDriverStdArrays::fillBuffer(double fillValueDouble)
+{
+    NDArrayType *pOut = (NDArrayType *)pArrays[0]->pData;
+    size_t i;
+    NDArrayType fillValue = (NDArrayType)fillValueDouble;
+
+    for (i=0; i<arrayInfo_.nElements; i++) {
+        pOut[i] = fillValue;
+    }
+}
+
+template <typename epicsType, typename NDArrayType> void NDDriverStdArrays::copyBuffer(size_t nextElement, size_t stride, 
+                                                                                       void *pValue, size_t nElements)
 {
     epicsType *pIn = (epicsType *)pValue;
     NDArrayType *pOut = (NDArrayType *)pArrays[0]->pData + nextElement;
+    size_t i, j;
 
-    for (size_t i=0; i<nElements; i++) pOut[i] = (NDArrayType) pIn[i];
+    for (i=0, j=0; i<nElements; i++) {
+        pOut[j] = (NDArrayType) pIn[i];
+        j+= stride;
+        if (j >= arrayInfo_.nElements) j = j % arrayInfo_.nElements;
+//printf("NDDriverStdArrays::copyBuffer i=%d, j=%d\n", (int)i, (int)j);
+    } 
 }
 
 template <typename epicsType> asynStatus NDDriverStdArrays::writeXXXArray(asynUser *pasynUser, void *pValue, size_t nElements)
@@ -94,18 +116,18 @@ template <typename epicsType> asynStatus NDDriverStdArrays::writeXXXArray(asynUs
     asynStatus status = asynSuccess;
     int dataType;
     int colorMode;
-    NDArrayInfo arrayInfo;
     int callbackMode;
     int appendMode;
     int numElements;
     int nextElement;
+    int stride;
     int numDimensions;
     int arrayCallbacks;
     int i;
     int itemp;
     int newArray;
+    double fillValueDouble;
     epicsInt32 currentIndex[ND_ARRAY_MAX_DIMS];
-    size_t dimProd[ND_ARRAY_MAX_DIMS];
     NDArray *pArray;
     static const char *functionName = "writeXXXArray";
 
@@ -136,9 +158,9 @@ template <typename epicsType> asynStatus NDDriverStdArrays::writeXXXArray(asynUs
             return asynError;
         }
         pArray->pAttributeList->add("ColorMode", "Color Mode", NDAttrInt32, &colorMode);
-        pArray->getInfo(&arrayInfo);
-        setIntegerParam(NDArraySize,  (int)arrayInfo.totalBytes);
-        setIntegerParam(NDSA_NumElements_, arrayInfo.nElements);
+        pArray->getInfo(&arrayInfo_);
+        setIntegerParam(NDArraySize,  (int)arrayInfo_.totalBytes);
+        setIntegerParam(NDSA_NumElements_, arrayInfo_.nElements);
         setIntegerParam(ADMaxSizeX,   arrayDimensions_[0]);
         setIntegerParam(ADMaxSizeY,   arrayDimensions_[1]);
         setIntegerParam(NDArraySizeX, 0);
@@ -146,16 +168,43 @@ template <typename epicsType> asynStatus NDDriverStdArrays::writeXXXArray(asynUs
         setIntegerParam(NDArraySizeZ, 0);
 
         memset(currentIndex, 0, ND_ARRAY_MAX_DIMS*sizeof(currentIndex[0]));
-        memset(dimProd, 0, ND_ARRAY_MAX_DIMS*sizeof(dimProd[0]));
-        dimProd[0] = arrayDimensions_[0];
+        memset(dimProd_, 0, ND_ARRAY_MAX_DIMS*sizeof(dimProd_[0]));
+        dimProd_[0] = arrayDimensions_[0];
         for (i=1; i<numDimensions; i++) {
-            dimProd[i] = arrayDimensions_[i] * dimProd[i-1];
+            dimProd_[i] = arrayDimensions_[i] * dimProd_[i-1];
         }
 
-        // In append mode zero-fill the array
+        // In append mode fill the array
         if (appendMode == 1 || 
-          ((appendMode == 0) && (arrayInfo.nElements < nElements))) {
-            memset(pArray->pData, 0, arrayInfo.totalBytes);
+          ((appendMode == 0) && (arrayInfo_.nElements < nElements))) {
+    
+            getDoubleParam(NDSA_FillValue_, &fillValueDouble);
+            switch (dataType){
+                case NDInt8:
+                    fillBuffer<epicsInt8>(fillValueDouble);
+                    break;
+                case NDUInt8:
+                    fillBuffer<epicsUInt8>(fillValueDouble);
+                    break;
+                case NDInt16:
+                    fillBuffer<epicsInt16>(fillValueDouble);
+                    break;
+                case NDUInt16:
+                    fillBuffer<epicsUInt16>(fillValueDouble);
+                    break;
+                case NDInt32:
+                    fillBuffer<epicsInt32>(fillValueDouble);
+                    break;
+                case NDUInt32:
+                    fillBuffer<epicsUInt32>(fillValueDouble);
+                    break;
+                case NDFloat32:
+                    fillBuffer<epicsFloat32>(fillValueDouble);
+                    break;
+                case NDFloat64:
+                    fillBuffer<epicsFloat64>(fillValueDouble);
+                    break;
+            }
         }
         if (appendMode == 0) {
             setIntegerParam(NDSA_NextElement_, 0);
@@ -163,34 +212,35 @@ template <typename epicsType> asynStatus NDDriverStdArrays::writeXXXArray(asynUs
     }
 
     getIntegerParam(NDSA_NextElement_, &nextElement);
-    if ((nextElement + nElements) >= arrayInfo.nElements) {
-        nElements = arrayInfo.nElements - nextElement;
+    if ((nextElement + nElements) >= arrayInfo_.nElements) {
+        nElements = arrayInfo_.nElements - nextElement;
     }
+    getIntegerParam(NDSA_Stride_, &stride);
     
     switch (dataType){
         case NDInt8:
-            copyBuffer<epicsType, epicsInt8>(nextElement, pValue, nElements);
+            copyBuffer<epicsType, epicsInt8>(nextElement, stride, pValue, nElements);
             break;
         case NDUInt8:
-            copyBuffer<epicsType, epicsUInt8>(nextElement, pValue, nElements);
+            copyBuffer<epicsType, epicsUInt8>(nextElement, stride, pValue, nElements);
             break;
         case NDInt16:
-            copyBuffer<epicsType, epicsInt16>(nextElement, pValue, nElements);
+            copyBuffer<epicsType, epicsInt16>(nextElement, stride, pValue, nElements);
             break;
         case NDUInt16:
-            copyBuffer<epicsType, epicsUInt16>(nextElement, pValue, nElements);
+            copyBuffer<epicsType, epicsUInt16>(nextElement, stride, pValue, nElements);
             break;
         case NDInt32:
-            copyBuffer<epicsType, epicsInt32>(nextElement, pValue, nElements);
+            copyBuffer<epicsType, epicsInt32>(nextElement, stride, pValue, nElements);
             break;
         case NDUInt32:
-            copyBuffer<epicsType, epicsUInt32>(nextElement, pValue, nElements);
+            copyBuffer<epicsType, epicsUInt32>(nextElement, stride, pValue, nElements);
             break;
         case NDFloat32:
-            copyBuffer<epicsType, epicsFloat32>(nextElement, pValue, nElements);
+            copyBuffer<epicsType, epicsFloat32>(nextElement, stride, pValue, nElements);
             break;
         case NDFloat64:
-            copyBuffer<epicsType, epicsFloat64>(nextElement, pValue, nElements);
+            copyBuffer<epicsType, epicsFloat64>(nextElement, stride, pValue, nElements);
             break;
     }
     
@@ -201,9 +251,9 @@ template <typename epicsType> asynStatus NDDriverStdArrays::writeXXXArray(asynUs
     itemp = nextElement-1;
     for (i=numDimensions-1; i>0; i--) {
         if (i < (numDimensions-1)) {
-            itemp %= dimProd[i];
+            itemp %= dimProd_[i];
         }
-        currentIndex[i] = 1 + (itemp / dimProd[i-1]);
+        currentIndex[i] = 1 + (itemp / dimProd_[i-1]);
     }
     currentIndex[0] = 1 + (itemp % arrayDimensions_[0]);
     doCallbacksInt32Array(currentIndex, ND_ARRAY_MAX_DIMS, NDDimensions, 0);
