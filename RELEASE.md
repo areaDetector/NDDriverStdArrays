@@ -17,8 +17,8 @@ Release Notes
 =============
 
 
-R1-0 (November XXX, 2016)
+R1-0 (November 21, 2016)
 ====================
 * Initial release. This release requires changes to ADCore that were made after R2-5.  
-  They will be present in R2-6, but until R2-6 is released the master branch of ADCore can be used.
+  They will be present in R2-6, but until R2-6 is released the master branch of ADCore should be used.
 
