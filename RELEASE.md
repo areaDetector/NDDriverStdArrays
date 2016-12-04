@@ -16,6 +16,11 @@ files respectively, in the configure/ directory of the appropriate release of th
 Release Notes
 =============
 
+R1-1 (December XXX, 2016)
+====================
+* Added new parameters ADSerialNumber, ADFirmwareVersion, ADSDKVersion. Minor change to
+  driver and medm screen.
+
 
 R1-0 (November 21, 2016)
 ====================
