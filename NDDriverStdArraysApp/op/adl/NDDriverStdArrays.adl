@@ -1,14 +1,14 @@
 
 file {
-	name="/home/epics/devel/areaDetector-2-5/NDDriverStdArrays/NDDriverStdArraysApp/op/adl/NDDriverStdArrays.adl"
-	version=030107
+	name="/home/epics/devel/areaDetector-3-1/NDDriverStdArrays/NDDriverStdArraysApp/op/adl/NDDriverStdArrays.adl"
+	version=030109
 }
 display {
 	object {
 		x=447
 		y=65
 		width=715
-		height=815
+		height=750
 	}
 	clr=14
 	bclr=4
@@ -134,10 +134,10 @@ composite {
 }
 composite {
 	object {
-		x=5
-		y=750
+		x=360
+		y=620
 		width=350
-		height=60
+		height=110
 	}
 	"composite name"=""
 	"composite file"="ADAttrFile.adl"
