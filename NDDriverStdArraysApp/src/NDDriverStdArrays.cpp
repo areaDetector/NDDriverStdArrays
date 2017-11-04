@@ -325,9 +325,7 @@ void NDDriverStdArrays::doCallbacks()
     pArray->timeStamp = startTime.secPastEpoch+startTime.nsec/1.e9;
     updateTimeStamp(&pArray->epicsTS);
     this->getAttributes(pArray->pAttributeList);
-    this->unlock();
     doCallbacksGenericPointer(pArray, NDArrayData, 0);
-    this->lock();
 }
 
 /** Called when asyn clients call pasynInt32->write().
