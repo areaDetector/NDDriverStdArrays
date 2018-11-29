@@ -130,7 +130,7 @@ template <typename epicsType> asynStatus NDDriverStdArrays::writeXXXArray(asynUs
     int stride;
     int numDimensions;
     int arrayCallbacks;
-    int i;
+    unsigned int i;
     int itemp;
     int newArray;
     double fillValueDouble;
