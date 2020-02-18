@@ -2,7 +2,7 @@ NDDriverStdArrays
 =================
 An 
 [EPICS](http://www.aps.anl.gov/epics)
-[areaDetector](https://cars.uchicago.edu/software/epics/areaDetector.html)
+[areaDetector](https://github.com/areaDetector/areaDetector/blob/master/README.md)
 driver that allows any EPICS Channel Access client to create NDArrays in 
 an areaDetector IOC.
 It is the logical inverse of the NDPluginStdArrays plugin which converts
