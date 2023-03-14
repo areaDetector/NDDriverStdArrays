@@ -21,5 +21,5 @@ pvaDriver only works with EPICS V4 PVAccess clients, while NDDriverStdArrays
 works with EPICS V3 Channel Access clients.
 
 Additional information:
-* [Documentation](areaDetector.github.io/areaDetector/NDDriverStdArrays/NDDriverStdArraysDoc).
-* [Release notes and links to source and binary releases](RELEASE.md).
+* [Documentation](https://areaDetector.github.io/areaDetector/NDDriverStdArrays/NDDriverStdArraysDoc)
+* [Release notes and links to source and binary releases](RELEASE.md)
