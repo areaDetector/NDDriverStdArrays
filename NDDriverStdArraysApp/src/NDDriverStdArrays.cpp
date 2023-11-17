@@ -320,8 +320,7 @@ void NDDriverStdArrays::doCallbacks()
 
     /* Put the frame number and timestamp into the NDArray */
     pArray->uniqueId = imageCounter;
-    updateTimeStamp(&pArray->epicsTS);
-    pArray->timeStamp = pArray->epicsTS.secPastEpoch + pArray->epicsTS.nsec/1.e9;
+    updateTimeStamps(pArray);
     this->getAttributes(pArray->pAttributeList);
     doCallbacksGenericPointer(pArray, NDArrayData, 0);
 }
