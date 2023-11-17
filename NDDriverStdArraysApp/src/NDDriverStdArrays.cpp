@@ -310,7 +310,6 @@ void NDDriverStdArrays::setArrayComplete()
 void NDDriverStdArrays::doCallbacks()
 {
     NDArray *pArray = this->pArrays[0];
-    epicsTimeStamp startTime;
     int imageCounter;
 
     if (!pArray) return;
@@ -321,9 +320,7 @@ void NDDriverStdArrays::doCallbacks()
 
     /* Put the frame number and timestamp into the NDArray */
     pArray->uniqueId = imageCounter;
-    epicsTimeGetCurrent(&startTime);
-    pArray->timeStamp = startTime.secPastEpoch+startTime.nsec/1.e9;
-    updateTimeStamp(&pArray->epicsTS);
+    updateTimeStamps(pArray);
     this->getAttributes(pArray->pAttributeList);
     doCallbacksGenericPointer(pArray, NDArrayData, 0);
 }
