@@ -1,0 +1,9 @@
+
+#==============================================================
+RELEASE_NOTES for NDDriverStdArrays module
+#==============================================================
+
+R1.3.12-0.1.0  13-Aug-2024  M. Dunning (mdunning)
+    Merge latest from github master
+    Add .gitignore, configure/RELEASE.local, RELEASE_NOTES
+
