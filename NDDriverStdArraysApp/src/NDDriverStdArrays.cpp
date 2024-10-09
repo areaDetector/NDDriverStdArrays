@@ -320,10 +320,12 @@ void NDDriverStdArrays::doCallbacks()
     setIntegerParam(NDArrayCounter, imageCounter);
 
     /* Put the frame number and timestamp into the NDArray */
-    pArray->uniqueId = imageCounter;
+    //pArray->uniqueId = imageCounter;
     epicsTimeGetCurrent(&startTime);
     pArray->timeStamp = startTime.secPastEpoch+startTime.nsec/1.e9;
     updateTimeStamp(&pArray->epicsTS);
+    // Use local fiducial (traditional SLAC hack)
+    pArray->uniqueId = pArray->epicsTS.nsec & 0x1FFFF;
     this->getAttributes(pArray->pAttributeList);
     doCallbacksGenericPointer(pArray, NDArrayData, 0);
 }

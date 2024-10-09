@@ -3,6 +3,9 @@
 RELEASE_NOTES for NDDriverStdArrays module
 #==============================================================
 
+R1.3.12-0.1.1  09-Oct-2024  M. Dunning (mdunning)
+    Add traditional SLAC hack of setting NDArray uniqueId to lower 17 bits of ns timestamp
+
 R1.3.12-0.1.0  13-Aug-2024  M. Dunning (mdunning)
     Merge latest from github master
     Add .gitignore, configure/RELEASE.local, RELEASE_NOTES
