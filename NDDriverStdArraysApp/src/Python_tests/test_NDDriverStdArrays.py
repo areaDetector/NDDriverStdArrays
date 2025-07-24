@@ -51,7 +51,7 @@ def shift(array=None, sx=0, sy=0, sz=0):
         return array
     ndim = len(array.shape)
     if ndim > 3:
-        print 'Maximum number of dimensions for array is 3'
+        print('Maximum number of dimensions for array is 3')
         return array
     s = [sx, sy, sz]
     for i in range(ndim):
@@ -135,7 +135,7 @@ class TestNDDriverStdArrays(unittest.TestCase):
         scaleStep = 1.05
         self.setupPVs(dimensions=[nx, ny])
         for dt in dataTypes:
-            print 'testDataTypes type={:s}'.format(dt) 
+            print('testDataTypes type={:s}'.format(dt))
             self.dataTypePV.put(dataTypes[dt])
             row = np.arange(nx) / (nx-1.) * scale
             scale *= scaleStep
@@ -156,7 +156,7 @@ class TestNDDriverStdArrays(unittest.TestCase):
         scaleStep = 1.1
         self.setupPVs(dimensions=[nx, ny], appendMode='Enable')
         for dt in dataTypes:
-            print 'testDataTypesAppend type={:s}'.format(dt) 
+            print('testDataTypesAppend type={:s}'.format(dt))
             yStart = 0
             self.newArrayPV.put(1)
             self.dataTypePV.put(dataTypes[dt])
@@ -186,7 +186,7 @@ class TestNDDriverStdArrays(unittest.TestCase):
         self.setupPVs(dimensions=[nx, ny], dataType=dataTypes[dt], imageMode='Continuous')
         d = dist(nx, ny)
         for i in range(1, loops+1):
-            print 'testContinuousMono {0}/{1} '.format(i, loops)
+            print('testContinuousMono {0}/{1} '.format(i, loops))
             image = scale*np.sin(shift(d/i, nx/2, ny/2))
             image = image.astype(npDataTypes[dt]).transpose()
             self.acquirePV.put('Acquire')
@@ -207,7 +207,7 @@ class TestNDDriverStdArrays(unittest.TestCase):
         d = dist(nx, ny)
         image = np.empty([3, nx, ny])
         for i in range(1, loops+1):
-            print 'testContinuousRGB1 {0}/{1} '.format(i, loops)
+            print('testContinuousRGB1 {0}/{1} '.format(i, loops))
             red   = scale*np.sin(shift(d/i,     nx/2, ny/2))
             green = scale*np.sin(shift(d/(i*2), nx/2, ny/2))
             blue  = scale*np.sin(shift(d/(i*3), nx/2, ny/2))
@@ -234,7 +234,7 @@ class TestNDDriverStdArrays(unittest.TestCase):
         else:
           yscan = [0, ny, 1]
           xscan = [0, nx, 1]
-        print 'testScanPoint reverse={0}'.format(reverse) 
+        print('testScanPoint reverse={0}'.format(reverse))
         self.setupPVs(dimensions=[ndet, nx, ny], dataType=dataTypes[dt], appendMode='Enable',
                       roiSize=[1,10000,10000], imagePort='ROI1')
         self.acquirePV.put('Acquire')
@@ -253,7 +253,7 @@ class TestNDDriverStdArrays(unittest.TestCase):
                 if (reverse): nextElement -= ndet
         self.arrayCompletePV.put(1)
         for roi in range(maxROIs):
-            print '  Showing ROI', roi
+            print('  Showing ROI', roi)
             self.ROIStartPVs[0].put(roi)
             self.doCallbacksPV.put(1)
             time.sleep(1)
@@ -286,7 +286,7 @@ class TestNDDriverStdArrays(unittest.TestCase):
             stride = 1
             yStep = nx
             detStep = nx * ny
-        print 'testScanLine detector index={0}'.format(detIndex) 
+        print('testScanLine detector index={0}'.format(detIndex)) 
         self.setupPVs(dimensions=dimensions, dataType=dataTypes[dt], appendMode='Enable', stride=stride,
                       roiSize=roiSize, imagePort='ROI1', fillValue=1)
         self.acquirePV.put('Acquire')
@@ -307,7 +307,7 @@ class TestNDDriverStdArrays(unittest.TestCase):
                 nextElement += detStep
         self.arrayCompletePV.put(1)
         for roi in range(maxROIs):
-            print '  Showing ROI', roi
+            print('  Showing ROI', roi)
             self.ROIStartPVs[detIndex].put(roi)
             self.doCallbacksPV.put(1)
             time.sleep(1)
