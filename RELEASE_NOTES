@@ -3,6 +3,10 @@
 RELEASE_NOTES for NDDriverStdArrays module
 #==============================================================
 
+R1.3.12-0.1.2  04-Sep-2025  P. Nisperos (pnispero)
+    Update ADCore to R3.10-1.1.1
+    Update ASYN to R4.39-1.0.2
+
 R1.3.12-0.1.1  09-Oct-2024  M. Dunning (mdunning)
     Add traditional SLAC hack of setting NDArray uniqueId to lower 17 bits of ns timestamp
 
